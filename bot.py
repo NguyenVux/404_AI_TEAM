@@ -26,3 +26,23 @@ def callBot(game_info):
     you = lines[12]
 
     return bot(victory_cell, cell, you)
+
+
+
+def validSteps(game_info):
+    lines = game_info.split('\n')
+
+    victory_cell = lines[1].split(' ')
+
+    cell = Board()
+    cell.update(lines[3:11])
+
+    you = lines[12]
+
+    color = 'B' if you == "BLACK" else 'W'
+
+    posible_positions = []
+    for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
+        if cell.isPlaceable(c + r, color):
+            posible_positions.append(c + r)
+    return posible_positions
