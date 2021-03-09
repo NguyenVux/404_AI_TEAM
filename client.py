@@ -1,9 +1,9 @@
 import socket, re
-from bot2 import callBot
 from os import system
+import bot_scan
 #HOST, PORT = socket.gethostname(), 14003
-HOST, PORT = "127.0.0.1", 14003
-
+PORT =  14003
+HOST = input("enter host: ")
 
 # Create a socket (SOCK_STREAM means a TCP socket)
 white_win = 0
@@ -36,7 +36,7 @@ for i in range(5):
                 system("cls")
                 print("Match Number: "+ str(i))
                 print(ret)
-                sock.sendall(bytes(callBot(ret), "ASCII"))
+                sock.sendall(bytes(bot_scan.callBot(ret), "ASCII"))
 
 total = white_win+white_lose+black_lose+black_win
 print("Total matches: " + str(total))        
