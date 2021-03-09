@@ -1,13 +1,13 @@
 import socketserver, random, re
 
 from init import Game
-from bot import callBot
+from bot_anh_thay import callBot
 
 class GameServerHandler(socketserver.BaseRequestHandler):
     def handle(self):
         gameInstance = Game()
 
-        isPlayFirst = False#random.choice([True, False])
+        isPlayFirst = random.choice([True, False])
         if isPlayFirst:
             gameInstance.setNextTurn(callBot(gameInstance.getInfo()))
 
