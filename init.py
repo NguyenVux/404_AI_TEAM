@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 
+
 class Board:
     def __init__(self):
         self.data = np.array([['E'] * 8] * 8)
@@ -68,14 +69,14 @@ class Board:
     # color: {'B', 'W'}
     # return: {True, False}
     def isPlaceable(self, position, color):
-        return self.isDirectionPlaceable(position, ( 1,  0), color) or    \
-               self.isDirectionPlaceable(position, ( 1,  1), color) or    \
-               self.isDirectionPlaceable(position, ( 0,  1), color) or    \
-               self.isDirectionPlaceable(position, (-1,  1), color) or    \
-               self.isDirectionPlaceable(position, (-1,  0), color) or    \
-               self.isDirectionPlaceable(position, (-1, -1), color) or    \
-               self.isDirectionPlaceable(position, ( 0, -1), color) or    \
-               self.isDirectionPlaceable(position, ( 1, -1), color)
+        return self.isDirectionPlaceable(position, (1, 0), color) or \
+               self.isDirectionPlaceable(position, (1, 1), color) or \
+               self.isDirectionPlaceable(position, (0, 1), color) or \
+               self.isDirectionPlaceable(position, (-1, 1), color) or \
+               self.isDirectionPlaceable(position, (-1, 0), color) or \
+               self.isDirectionPlaceable(position, (-1, -1), color) or \
+               self.isDirectionPlaceable(position, (0, -1), color) or \
+               self.isDirectionPlaceable(position, (1, -1), color)
 
     # color: {'B', 'W'}
     # return: {True, False}
@@ -120,14 +121,14 @@ class Board:
     # color: {'B', 'W'}
     # return: list of cells which will change color
     def getFlips(self, position, color):
-        return self.getDirectionFlips(position, ( 1,  0), color) +    \
-               self.getDirectionFlips(position, ( 1,  1), color) +    \
-               self.getDirectionFlips(position, ( 0,  1), color) +    \
-               self.getDirectionFlips(position, (-1,  1), color) +    \
-               self.getDirectionFlips(position, (-1,  0), color) +    \
-               self.getDirectionFlips(position, (-1, -1), color) +    \
-               self.getDirectionFlips(position, ( 0, -1), color) +    \
-               self.getDirectionFlips(position, ( 1, -1), color)
+        return self.getDirectionFlips(position, (1, 0), color) + \
+               self.getDirectionFlips(position, (1, 1), color) + \
+               self.getDirectionFlips(position, (0, 1), color) + \
+               self.getDirectionFlips(position, (-1, 1), color) + \
+               self.getDirectionFlips(position, (-1, 0), color) + \
+               self.getDirectionFlips(position, (-1, -1), color) + \
+               self.getDirectionFlips(position, (0, -1), color) + \
+               self.getDirectionFlips(position, (1, -1), color)
 
     # Assume that the 'color' player can place a piece at the 'position' cell of the board
     # color: {'B', 'W'}
@@ -149,9 +150,23 @@ class Board:
             for c in range(8):
                 self.data[r, c] = cells[c]
 
+    def getCellLineLst(self):
+        line_list = []
+        str_tmp = ""
+        for r in range(8):
+            for c in range(8):
+                if c < 7:
+                    str_tmp += self.data[r, c] + ' '
+                else:
+                    str_tmp += self.data[r, c]
+            line_list.append(str_tmp)
+            str_tmp = ""
+        return line_list
+
+
 class Game:
     def __init__(self):
-        random_numbers = np.random.choice(64, 5, replace = False)
+        random_numbers = np.random.choice(64, 5, replace=False)
 
         self.victory_cells = [chr(x // 8 + ord('a')) + chr(x % 8 + ord('1')) for x in random_numbers]
         self.board = Board()
