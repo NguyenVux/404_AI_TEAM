@@ -1,6 +1,7 @@
 import socket, re
 from bot2 import callBot
-HOST, PORT = socket.gethostname(), 14003
+#HOST, PORT = socket.gethostname(), 14003
+HOST, PORT = "127.0.0.1", 14003
 
 
 # Create a socket (SOCK_STREAM means a TCP socket)

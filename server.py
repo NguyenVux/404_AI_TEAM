@@ -7,7 +7,7 @@ class GameServerHandler(socketserver.BaseRequestHandler):
     def handle(self):
         gameInstance = Game()
 
-        isPlayFirst = random.choice([True, False])
+        isPlayFirst = False#random.choice([True, False])
         if isPlayFirst:
             gameInstance.setNextTurn(callBot(gameInstance.getInfo()))
 

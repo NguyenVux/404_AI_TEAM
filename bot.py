@@ -126,7 +126,7 @@ def callBot(game_info):
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (m, px, py) = maxBot(victory_cell, lines, you, -2, 2, 8)
+    (m, px, py) = maxBot(victory_cell, lines, you, -2, 2, 3)
     if px == None or py == None:
         return "NULL"
     return py + px
