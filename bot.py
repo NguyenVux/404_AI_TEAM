@@ -3,15 +3,65 @@ import itertools, random
 from init import Board
 
 
-def maxBot(victory_cell, cur_state, you, alpha, beta, depth):
+def is_end(victory_cells, cell, color):
+    v_b = v_w = 0
+    count = 0
 
+    for c in victory_cells:
+        if cell.getValue(c) == 'B':
+            count += 1
+            v_b += 1
+        if cell.getValue(c) == 'W':
+            count += 1
+            v_w += 1
+    if v_b == 5:
+        return "BLACK"
+    if v_w == 5:
+        return "WHITE"
+
+    if count == 5:
+        if v_w > v_b:
+            return "WHITE"
+        return "BLACK"
+
+    color_op = 'B' if color == 'WHITE' else 'W'
+    check_playable = cell.isPlayable(color)
+    if not check_playable:
+        return "BLACK" if color == 'W' else 'B'
+    return None
+
+def victoryCellLeft(victory_cells, cell):
+    count=0
+    for c in victory_cells:
+        value=cell.getValue(c)
+        if  value!= 'B' and value!='W':
+            count += 1
+    return count
+
+def heuristic(victory_cell, cell, color, max=True):
+    result= is_end(victory_cell, cell, color)
+    opponent = 'B' if color != "BLACK" else 'W'
+    result = 'B' if result == "BLACK" else 'W'
+    if len(validSteps(cell, opponent))==0:
+        return (9999, None, None) if max else (-9999, None, None)
+    if result!=color and result!=None:
+        return (-9999, None, None) if max else (9999, None, None)
+
+    m = 0
+    num_steps = len(validSteps(cell, color))
+    op_num_steps = len(validSteps(cell, opponent))
+    m = num_steps - op_num_steps
+    return (m, None, None) if max else (-m, None, None)
+
+
+def maxBot(victory_cell, cur_state, you, alpha, beta, depth):
     cell = Board()
     cell.update(cur_state)
 
     color = 'B' if you == "BLACK" else 'W'
-    maxv = -2
+    maxv = -9999
     if depth == 0:
-        result=is_end(victory_cell, cell, color, True)
+        return heuristic(victory_cell, cell, color)
     else:
         result = is_end(victory_cell, cell, color)
 
@@ -19,9 +69,9 @@ def maxBot(victory_cell, cur_state, you, alpha, beta, depth):
     py = None
 
     if result == you:
-        return (1, None, None)
+        return (9999, None, None)
     elif result != 'DRAW' and result != None:
-        return (-1, None, None)
+        return (-9999, None, None)
     elif result == 'DRAW':
         return (0, None, None)
 
@@ -33,7 +83,7 @@ def maxBot(victory_cell, cur_state, you, alpha, beta, depth):
 
             new_state = new_cell.getCellLineLst()
             competitior = 'BLACK' if you != "BLACK" else 'WHITE'
-            (m, min_x, min_y) = minBot(victory_cell, new_state, competitior, alpha, beta, depth-1)
+            (m, min_x, min_y) = minBot(victory_cell, new_state, competitior, alpha, beta, depth - 1)
             if m > maxv:
                 maxv = m
                 px = x
@@ -51,9 +101,9 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
     cell.update(cur_state)
 
     color = 'B' if you == "BLACK" else 'W'
-    minv = 2
+    minv = 9999
     if depth == 0:
-        result = is_end(victory_cell, cell, color, True)
+        return heuristic(victory_cell, cell, color, False)
     else:
         result = is_end(victory_cell, cell, color)
 
@@ -61,9 +111,9 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
     py = None
 
     if result == you:
-        return (-1, None, None)
+        return (-9999, None, None)
     elif result != 'DRAW' and result != None:
-        return (1, None, None)
+        return (9999, None, None)
     elif result == 'DRAW':
         return (0, None, None)
 
@@ -76,7 +126,7 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
             new_state = new_cell.getCellLineLst()
 
             competitior = 'BLACK' if you != "BLACK" else 'WHITE'
-            (m, max_x, max_y) = maxBot(victory_cell, new_state, competitior, alpha, beta, depth-1)
+            (m, max_x, max_y) = maxBot(victory_cell, new_state, competitior, alpha, beta, depth - 1)
             if m < minv:
                 minv = m
                 px = x
@@ -90,60 +140,18 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
     return minv, px, py
 
 
-def is_end(victory_cells, cell, color, force=False):
-    v_b = v_w = 0
-    for c in victory_cells:
-        v_b += 1 if cell.getValue(c) == 'B' else 0
-        v_w += 1 if cell.getValue(c) == 'W' else 0
-    if v_b == 5:
-        return "BLACK"
-    if v_w == 5:
-        return "White"
-
-    color = 'B' if color == 'WHITE' else 'W'
-    check_playable=False
-    if not force:
-        check_playable= cell.isPlayable(color)
-    if not check_playable:
-        b, w = cell.getResult()
-        if b > w:
-            return "BLACK"
-        elif b < w:
-            return "WHITE"
-        if b == w:
-            if v_b > v_w:
-                return "BLACK"
-            elif v_b < v_w:
-                return "WHITE"
-            else:
-                return "DRAW"
-
-    return None
-
-
 def callBot(game_info):
     lines = game_info.split('\n')
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (m, px, py) = maxBot(victory_cell, lines, you, -2, 2, 8)
+    (m, px, py) = maxBot(victory_cell, lines, you, -9999, 9999, 5)
     if px == None or py == None:
         return "NULL"
     return py + px
 
 
-def validSteps(game_info):
-    lines = game_info.split('\n')
-
-    victory_cell = lines[1].split(' ')
-
-    cell = Board()
-    cell.update(lines[3:11])
-
-    you = lines[12]
-
-    color = 'B' if you == "BLACK" else 'W'
-
+def validSteps(cell, color):
     posible_positions = []
     for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
         if cell.isPlaceable(c + r, color):
