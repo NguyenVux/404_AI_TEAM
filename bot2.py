@@ -35,6 +35,7 @@ def valid_positions(cell,color):
             posible_positions.append(c + r)
     return posible_positions
 
+coef = (0.5,0.5,1,1)
 def heuristic_othello_board(board: Board, victory_cell, you):
     opponent_color = 'W' if you == 'B' else 'B'
     print(opponent_color)
