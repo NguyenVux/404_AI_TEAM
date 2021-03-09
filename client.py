@@ -1,5 +1,5 @@
 import socket, re
-from bot import callBot, validSteps
+from bot2 import callBot
 HOST, PORT = socket.gethostname(), 14003
 
 
@@ -14,7 +14,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         if re.match("^victory_cell", ret) is None:
             break
         else:
-            print('Valid steps:')
-            print(validSteps(ret))
-            yourStep = input("Your Step: ")
-            sock.sendall(bytes(yourStep, "ASCII"))
+            #print('Valid steps:')
+            #print(validSteps(ret))
+            #yourStep = input("Your Step: ")
+            sock.sendall(bytes(callBot(ret), "ASCII"))
