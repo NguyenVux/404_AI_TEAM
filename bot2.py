@@ -1,6 +1,6 @@
 import itertools, random
 
-from init import Board
+from init import Board,Game
 
 def bot(victory_cell, cell, you):
     color = 'B' if you == "BLACK" else 'W'
