@@ -1,7 +1,7 @@
 import socketserver, random, re
 
 from init import Game
-from bot import callBot
+import bot_scan
 
 class GameServerHandler(socketserver.BaseRequestHandler):
     def handle(self):
@@ -9,7 +9,7 @@ class GameServerHandler(socketserver.BaseRequestHandler):
 
         isPlayFirst = random.choice([True, False])
         if isPlayFirst:
-            gameInstance.setNextTurn(callBot(gameInstance.getInfo()))
+            gameInstance.setNextTurn(bot_scan.callBot(gameInstance.getInfo()))
 
         while not gameInstance.checkGameOver():
             self.request.sendall(bytes(gameInstance.getInfo(), "ASCII"))
@@ -27,9 +27,10 @@ class GameServerHandler(socketserver.BaseRequestHandler):
                 return
 
             if not gameInstance.checkGameOver():
-                gameInstance.setNextTurn(callBot(gameInstance.getInfo()))
+                gameInstance.setNextTurn(bot_scan.callBot(gameInstance.getInfo()))
 
         self.request.sendall(bytes(gameInstance.getFinalResult(), "ASCII"))
+        print("Finish")
 
 if __name__ == "__main__":
     HOST, PORT = "", 14003
