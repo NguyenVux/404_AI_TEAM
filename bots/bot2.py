@@ -1,8 +1,21 @@
 import itertools, random
+import numpy as np
 
 from init import Board,Game
 
-def botMax(cell_lines,you,depth = 8):
+coef = (0.5,1,0.5,1)
+
+cells_score = np.array([[15,-5,1,1,1,1,-5,15],
+                        [-5,1,1,1,1,1,1,-5],
+                        [1,1,1,1,1,1,1,1],
+                        [0.5,1,1,1,1,1,1,0.5],
+                        [0.5,1,1,1,1,1,1,0.5],
+                        [1,1,1,1,1,1,1,1],
+                        [-5,1,1,1,1,1,1,-5],
+                        [15,-5,1,1,1,1,-5,15]
+                        ])
+
+def botMax(cell_lines,you,alpha = None ,beta = None,depth = 8):
     board = Board()
     board.update(cell_lines)
     result = is_win(board,you)
@@ -17,13 +30,15 @@ def botMax(cell_lines,you,depth = 8):
             next_stage.update(cell_lines)
             next_stage.place(i,you)
             color = 'O' if you == '@' else '@'
-            _,point = botMin(next_stage.getCellLineLst(),color,depth-1)
+            _,point = botMin(next_stage.getCellLineLst(),color,alpha,vmax,depth-1)
             if point > vmax:
                 vmax = point
                 move = i
+            if alpha is not None and alpha >= point:
+                return i,point
         return move, vmax
 
-def botMin(cell_lines,you,depth = 8):
+def botMin(cell_lines,you,alpha = None ,beta = None,depth = 8):
     board = Board()
     board.update(cell_lines)
     result = is_win(board,you)
@@ -38,13 +53,18 @@ def botMin(cell_lines,you,depth = 8):
             next_stage.update(cell_lines)
             next_stage.place(i,you)
             color = 'O' if you == '@' else '@'
-            _,point = botMax(next_stage.getCellLineLst(),color,depth-1)
+            _,point = botMax(next_stage.getCellLineLst(),vmin,beta,color,depth-1)
             if point < vmin:
                 vmin = point
                 move = i
+            if beta is not None and beta <= point:
+                return i,point
         return move,vmin
 
-def callBot(game_info):
+def callBot(game_info, cell_score = None):
+    global cells_score
+    if cell_score is not None:
+        cells_score = cell_score
     lines = game_info.split('\n')
 
     victory_cell = lines[1].split(' ')
@@ -54,7 +74,8 @@ def callBot(game_info):
 
     you = lines[12]
     you = 'O' if you == 'WHITE' else '@'
-    move,point = botMax(cell.getCellLineLst(), you,1)
+    move,point = botMax(cell.getCellLineLst(), you,depth = 2)
+
     print("MAX: "+ str(point))
     if move is None:
         return "NULL"
@@ -73,30 +94,26 @@ def valid_positions(cell,color):
             posible_positions.append(c + r)
     return posible_positions
 
-coef = (0.5,1,0.2,1)
-border_coord = list(["a1","b1","c1","d1","e1","f1","g1","h1"
-                         ,"a8","b8","c8","d8","e8","f8","g8","h8"
-                         ,"a2","a3","a4","a5","a6","a7"
-                         ,"h2","h3","h4","h5","h6","h7"])
+
 def heuristic_othello_board(board: Board, victory_cell, you):
     opponent_color = 'O' if you == '@' else '@'
     self_valid_move = valid_positions(board,you)
     opponent_valid_move = valid_positions(board,opponent_color)
-    self_border_move = 0
-    opponent_border_move = 0
-    
+
+    self_cells_score = 0
+    opponent_cells_score = 0
+
     for i in self_valid_move:
-        if i in border_coord:
-            self_border_move += 1
+        self_cells_score += cells_score[board.getRowId(i[1]),board.getColumnId(i[0])]
+        
     
     for i in opponent_valid_move:
-        if i in border_coord:
-            opponent_border_move += 1
+        opponent_cells_score += cells_score[board.getRowId(i[1]),board.getColumnId(i[0])]
     
 
     #self_ocurred_victory_cell
     return \
         coef[0]*len(self_valid_move)-\
         coef[1]*len(opponent_valid_move)+\
-        coef[2]*self_border_move-\
-        coef[3]*opponent_border_move
+        coef[2]*self_cells_score-\
+        coef[3]*opponent_cells_score
