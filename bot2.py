@@ -16,7 +16,7 @@ def botMax(cell_lines,you,depth = 8):
             next_stage = Board()
             next_stage.update(cell_lines)
             next_stage.place(i,you)
-            color = 'W' if you == 'B' else 'B'
+            color = 'O' if you == '@' else '@'
             _,point = botMin(next_stage.getCellLineLst(),color,depth-1)
             if point > vmax:
                 vmax = point
@@ -37,7 +37,7 @@ def botMin(cell_lines,you,depth = 8):
             next_stage = Board()
             next_stage.update(cell_lines)
             next_stage.place(i,you)
-            color = 'W' if you == 'B' else 'B'
+            color = 'O' if you == '@' else '@'
             _,point = botMax(next_stage.getCellLineLst(),color,depth-1)
             if point < vmin:
                 vmin = point
@@ -53,7 +53,7 @@ def callBot(game_info):
     cell.update(lines[3:11])
 
     you = lines[12]
-    you = 'W' if you == 'WHITE' else 'B'
+    you = 'O' if you == 'WHITE' else '@'
     move,point = botMax(cell.getCellLineLst(), you,3)
     print("MAX: "+ str(point))
     if move is None:
@@ -62,7 +62,7 @@ def callBot(game_info):
 
 
 def is_win(board,color):
-    opponent_color = 'W' if color == 'B' else 'B'
+    opponent_color = 'O' if color == '@' else '@'
     if len(valid_positions(board,color)) == 0:
         return opponent_color
     return None
@@ -79,7 +79,7 @@ border_coord = list(["a1","b1","c1","d1","e1","f1","g1","h1"
                          ,"a2","a3","a4","a5","a6","a7"
                          ,"h2","h3","h4","h5","h6","h7"])
 def heuristic_othello_board(board: Board, victory_cell, you):
-    opponent_color = 'W' if you == 'B' else 'B'
+    opponent_color = 'O' if you == '@' else '@'
     self_valid_move = valid_positions(board,you)
     opponent_valid_move = valid_positions(board,opponent_color)
     self_border_move = 0

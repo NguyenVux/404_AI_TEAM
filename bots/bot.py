@@ -8,10 +8,10 @@ def is_end(victory_cells, cell, color):
     count = 0
 
     for c in victory_cells:
-        if cell.getValue(c) == 'B':
+        if cell.getValue(c) == '@':
             count += 1
             v_b += 1
-        if cell.getValue(c) == 'W':
+        if cell.getValue(c) == 'O':
             count += 1
             v_w += 1
     if v_b == 5:
@@ -24,24 +24,24 @@ def is_end(victory_cells, cell, color):
             return "WHITE"
         return "BLACK"
 
-    color_op = 'B' if color == 'WHITE' else 'W'
+    color_op = '@' if color == 'WHITE' else 'O'
     check_playable = cell.isPlayable(color)
     if not check_playable:
-        return "BLACK" if color == 'W' else 'B'
+        return "BLACK" if color == 'O' else '@'
     return None
 
 def victoryCellLeft(victory_cells, cell):
     count=0
     for c in victory_cells:
         value=cell.getValue(c)
-        if  value!= 'B' and value!='W':
+        if  value!= '@' and value!='O':
             count += 1
     return count
 
 def heuristic(victory_cell, cell, color, max=True):
     result= is_end(victory_cell, cell, color)
-    opponent = 'B' if color != "BLACK" else 'W'
-    result = 'B' if result == "BLACK" else 'W'
+    opponent = '@' if color != "BLACK" else 'O'
+    result = '@' if result == "BLACK" else 'O'
     if len(validSteps(cell, opponent))==0:
         return (9999, None, None) if max else (-9999, None, None)
     if result!=color and result!=None:
@@ -58,7 +58,7 @@ def maxBot(victory_cell, cur_state, you, alpha, beta, depth):
     cell = Board()
     cell.update(cur_state)
 
-    color = 'B' if you == "BLACK" else 'W'
+    color = '@' if you == "BLACK" else 'O'
     maxv = -9999
     if depth == 0:
         return heuristic(victory_cell, cell, color)
@@ -100,7 +100,7 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
     cell = Board()
     cell.update(cur_state)
 
-    color = 'B' if you == "BLACK" else 'W'
+    color = '@' if you == "BLACK" else 'O'
     minv = 9999
     if depth == 0:
         return heuristic(victory_cell, cell, color, False)
