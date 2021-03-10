@@ -1,6 +1,7 @@
 import itertools, random
 import numpy
 from init import Board
+from init import Game
 
 def validSteps(cell, color):
     posible_positions = []
@@ -44,10 +45,10 @@ def heuristic(victory_cell, cell, color, max=True):
     result= evaluated(victory_cell, cell, color)
     opponent = '@' if color != "BLACK" else 'O'
     result = '@' if result == "BLACK" else 'O'
-    #if len(validSteps(cell, opponent)) == 0:
-        #return 100 if max else -100
-    #if result != color and result!=None:
-        #return -100 if max else 100
+    if len(validSteps(cell, opponent)) == 0:
+       return 100 if max else -100
+    if result != color and result!=None:
+       return -100 if max else 100
 
     m = 0
     num_steps = len(validSteps(cell, color))
@@ -63,70 +64,70 @@ def minimax(victory_cell, cur_state, you, depth,isMax ):
     color = '@' if you == "BLACK" else 'O'
 
     if depth == 0:
-        score = heuristic(victory_cell, game, color)
-        return score
+        if(isMax):
+            return heuristic(victory_cell, game, color)
+        else:
+            return heuristic(victory_cell, game, color, True)
+
     else:
         score = evaluated(victory_cell, game, color)
 
     if score == you:
         return 100
-    if score != 'DRAW' and score != None:
+    elif score != 'DRAW' and score != None:
         return -100
-    if score == 'DRAW':
+    elif score == 'DRAW':
         return 0
 
-    if(isMax):
-        best = -9999
-        for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
-            if game.isPlaceable(y + x, color):
-                new_game = Board()
-                new_game.update(cur_state)
-                new_game.place(y + x, color)
-                new_state= new_game.getCellLineLst()
+    listValidSpot=[]
+    for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
+        if game.isPlaceable(y + x, color):
+            listValidSpot.append(y+x)
+    best = 0
+    for i in listValidSpot:
+        new_game = Board()
+        new_game.update(cur_state)
+        new_game.place(i, color)
+        new_state = new_game.getCellLineLst()
 
-                best = max(best, minimax(victory_cell, new_state, you, depth-1, not isMax))
-
-        return best
-    else:
-        best = 9999
-        for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
-            if game.isPlaceable(y + x, color):
-                new_game = Board()
-                new_game.update(cur_state)
-                new_game.place(y + x, color)
-                new_state= new_game.getCellLineLst()
-
-                best = min(best, minimax(victory_cell, new_state, you, depth-1, not isMax))
-
-        return best
+        if (isMax):
+            best = -9999
+            best = max(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
+            return best
+        else:
+            best = 9999
+            best = min(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
+            return best
+    return best
 
 
-def prior_spot(x,y,victory_cell):
+def prior_spot(x, y, victory_cell):
     score = 0
+    spot = y+x
     list_12=['a1', 'h1', 'a8', 'h8']
     list_2 =['c1', 'f1', 'c8', 'h8', 'a3', 'h3', 'a6', 'h6']
     list_1_5=['c3', 'f3', 'c6', 'f6']
-    list_0_5=['a4', 'h4', 'a5', 'h5']
+    list_0_5=['a4', 'h4', 'a5', 'h5', 'd1', 'e1', 'd8', 'e8']
     list_minus0_5 = ['c2', 'd2', 'e2', 'f2', 'b3', 'b4', 'b5', 'b6', 'g3'
                      'g4', 'g5', 'g6', 'c7', 'd7', 'e7', 'f7']
     list_minus2 = ['b1', 'g1', 'b8', 'g8', 'a2', 'h8', 'a7', 'h7']
     list_minus4 = ['b2', 'g2', 'b7', 'g7']
-    if y+x in list_12:
+    if spot in list_12:
         score += 12
-    elif y+x in list_2:
+    elif spot in list_2:
         score += 2
-    elif y+x in list_1_5:
+    elif spot in list_1_5:
         score += 1.5
-    elif y+x in list_minus2:
+    elif spot in list_minus2:
         score += -2
-    elif y+x in list_minus4:
+    elif spot in list_minus4:
         score += -4
-    elif y+x in list_0_5:
+    elif spot in list_0_5:
         score += 0.5
-    elif y+x in list_minus0_5:
+    elif spot in list_minus0_5:
         score += -0.5
     else:
-        score += 3
+        score += 0.3
     return score
 
 
@@ -156,7 +157,7 @@ def callBot(game_info):
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (px, py) = BestMove(victory_cell, lines, you, 2)
+    (px, py) = BestMove(victory_cell, lines, you, 1)
     if px == None or py == None:
         return "NULL"
     return py + px
