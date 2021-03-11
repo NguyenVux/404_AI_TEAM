@@ -17,7 +17,7 @@ for i in range(population_count):
 
 
 
-match_count = 100
+match_count = 1
 
 
 
@@ -57,7 +57,7 @@ def main():
             winrate.append(rate)
             print(rate)
 
-        if  max(*winrate) > 0.99 or gen == 200:
+        if  gen == 200:
             break
         
         _,population = (list(t) for t in zip(*sorted(zip(winrate,population),key=lambda e: e[0])))
@@ -70,7 +70,7 @@ def main():
             chronoB = mutate(chronoB, mutation_rate)
             new_gen.append(chronoA)
             new_gen.append(chronoB)
-        population = new_gen+best_5
+        population = new_gen
         print(population)
         gen+=1
         
