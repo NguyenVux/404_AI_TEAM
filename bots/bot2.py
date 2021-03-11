@@ -74,9 +74,8 @@ def callBot(game_info, cell_score = None):
 
     you = lines[12]
     you = 'O' if you == 'WHITE' else '@'
-    move,point = botMax(cell.getCellLineLst(), you,depth = 2)
+    move,point = botMax(cell.getCellLineLst(), you,depth = 15)
 
-    print("MAX: "+ str(point))
     if move is None:
         return "NULL"
     return move

@@ -3,10 +3,12 @@ from os import system
 import bot_scan
 import numpy as np
 from random import choice
+import json
 
-population_count = 10
-max_point = 20
-min_point = -20
+
+population_count = 20
+max_point = 50
+min_point = -50
 mutation_rate = 0.01
 crossover_rate = 0.3
 population = []
@@ -15,7 +17,7 @@ for i in range(population_count):
 
 
 
-match_count = 1
+match_count = 100
 
 
 
@@ -23,11 +25,10 @@ match_count = 1
 
 
 def crossover(chronoA,chronoB,crossover_rate):
-
     chronoC = np.copy(chronoA)
     chronoD = np.copy(chronoB)
     for i,k in enumerate(chronoA):
-        if np.random.random_sample() > crossover_rate:
+        if np.random.random_sample() < crossover_rate:
             chronoC[i] = chronoB[i]
             chronoD[i] = chronoA[i]
     return chronoC,chronoD
@@ -35,7 +36,7 @@ def crossover(chronoA,chronoB,crossover_rate):
 def mutate(chronoA,mutation_rate):
     chronoB = np.copy(chronoA)
     for i,k in enumerate(chronoB):
-        if np.random.random_sample() > mutation_rate:
+        if np.random.random_sample() < mutation_rate:
             chronoB[i] = (max_point-min_point) * np.random.random_sample() + min_point
     return chronoB
 
@@ -52,13 +53,16 @@ def main():
     gen = 0
     while True:
         for i in population:
-            winrate.append(start_match(HOST, PORT, i))
+            rate = start_match(HOST, PORT, i)
+            winrate.append(rate)
+            print(rate)
+
+        if  max(*winrate) > 0.99 or gen == 200:
+            break
         
-        for i,k in enumerate(winrate):
-            print("Winrate: "+str(k))
-        best_5 = []
-        for i in range(2):
-            best_5.append(choice(population))
+        _,population = (list(t) for t in zip(*sorted(zip(winrate,population),key=lambda e: e[0])))
+        
+        best_5 = population[:10]
         new_gen = []
         for i in best_5:
             chronoA,chronoB = crossover(i,choice(population), crossover_rate)
@@ -70,9 +74,9 @@ def main():
         print(population)
         gen+=1
         
-        z = input("press E to exit")
-        if z == 'e':
-            break
+        with open('data.json', 'w') as outfile:
+            data = [x.tolist() for x in population]
+            json.dump(data, outfile)
     
 
 def start_match(HOST,PORT,chromosome):
@@ -88,6 +92,7 @@ def start_match(HOST,PORT,chromosome):
             while True:
                 ret = str(sock.recv(1024), "ASCII")
                 if re.match("^victory_cell", ret) is None:
+                    print(ret)
                     if ret.split("\n")[-2] == color:
                         if color == "BLACK":
                             black_win += 1
@@ -103,7 +108,7 @@ def start_match(HOST,PORT,chromosome):
                 else:
                     if color is None:
                         color = ret.split('\n')[-2]
-                    system("cls")
+                    #system("cls")
                     print("Match Number: "+ str(i))
                     print(ret)
                     sock.sendall(bytes(bot_scan.callBot(ret,chromosome), "ASCII"))

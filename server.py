@@ -30,7 +30,9 @@ class GameServerHandler(socketserver.BaseRequestHandler):
                 gameInstance.setNextTurn(bot_scan.callBot(gameInstance.getInfo()))
 
         self.request.sendall(bytes(gameInstance.getFinalResult(), "ASCII"))
-        print("Finish")
+        #print(gameInstance.getFinalResult())
+        with open('history.data', 'a') as outfile:
+            outfile.write(gameInstance.getWinner() + " " + " ".join(gameInstance.history)+'\n')
 
 if __name__ == "__main__":
     HOST, PORT = "", 14003
