@@ -114,7 +114,7 @@ def minBot(victory_cell, cur_state, you, alpha, beta, depth):
         return (-9999, None, None)
     elif result != 'DRAW' and result != None:
         return (9999, None, None)
-    elif result == 'DRAW':   
+    elif result == 'DRAW':
         return (0, None, None)
 
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
