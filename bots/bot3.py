@@ -1,7 +1,5 @@
-import itertools, random
-import numpy
+import itertools
 from init import Board
-from init import Game
 
 def validSteps(cell, color):
     posible_positions = []
@@ -41,17 +39,17 @@ def evaluated(victory_cells, cell, color, force=False):
     return None
 
 
-def heuristic(victory_cell, cell, color, max=True):
+def heuristic(victory_cell, cell, color, max):
+
     result= evaluated(victory_cell, cell, color)
     opponent = '@' if color != "BLACK" else 'O'
-    result = '@' if result == "BLACK" else 'O'
+    AI = 'O' if opponent == "BLACK" else '@'
     if len(validSteps(cell, opponent)) == 0:
        return 100 if max else -100
-    if result != color and result!=None:
+    if result != color and result != None:
        return -100 if max else 100
 
-    m = 0
-    num_steps = len(validSteps(cell, color))
+    num_steps = len(validSteps(cell, AI))
     op_num_steps = len(validSteps(cell, opponent))
     m = num_steps - op_num_steps
     return m if max else -m
@@ -61,17 +59,13 @@ def minimax(victory_cell, cur_state, you, depth, isMax):
     game = Board()
     game.update(cur_state)
     score = 0
-    final = None
     color = '@' if you == "BLACK" else 'O'
-    if depth == 0 or game.isPlayable(you):
+    if depth == 0 or game.isPlayable(color):
         if(isMax):
-            score += heuristic(victory_cell, game, color)
+            score += heuristic(victory_cell, game, you, True)
         else:
-            score += heuristic(victory_cell, game, color, True)
-
-    else:
-        final = evaluated(victory_cell, game, color)
-
+            score += heuristic(victory_cell, game, you, False)
+    final = evaluated(victory_cell, game, color)
     if final == you:
         return score + 100
     elif final != 'DRAW' and final != None:
@@ -93,10 +87,12 @@ def minimax(victory_cell, cur_state, you, depth, isMax):
         if isMax:
             best = -9999
             best = max(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
+            del new_game
             return best
         else:
             best = 9999
             best = min(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
+            del new_game
             return best
     return best
 
@@ -146,6 +142,10 @@ def BestMove(victory_cell, cur_state, you, depth):
             new_game.place(y + x, color)
             new_state = new_game.getCellLineLst()
             moveVal = minimax(victory_cell, new_state, you, depth, True) + prior_spot(x, y)/2
+            '''print("moveVal: ", moveVal)
+            print("minimax: ", minimax(victory_cell, new_state, you, depth, True))
+            print("prior_spot: ", prior_spot(x, y))
+            print("bestVal: ", bestVal, "\n")'''
             if moveVal > bestVal:
                 px = x
                 py = y
