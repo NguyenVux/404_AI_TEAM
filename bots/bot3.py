@@ -57,27 +57,27 @@ def heuristic(victory_cell, cell, color, max=True):
     return m if max else -m
 
 
-def minimax(victory_cell, cur_state, you, depth,isMax ):
+def minimax(victory_cell, cur_state, you, depth, isMax):
     game = Board()
     game.update(cur_state)
-
+    score = 0
+    final = None
     color = '@' if you == "BLACK" else 'O'
-
-    if depth == 0:
+    if depth == 0 or game.isPlayable(you):
         if(isMax):
-            return heuristic(victory_cell, game, color)
+            score += heuristic(victory_cell, game, color)
         else:
-            return heuristic(victory_cell, game, color, True)
+            score += heuristic(victory_cell, game, color, True)
 
     else:
-        score = evaluated(victory_cell, game, color)
+        final = evaluated(victory_cell, game, color)
 
-    if score == you:
-        return 100
-    elif score != 'DRAW' and score != None:
-        return -100
-    elif score == 'DRAW':
-        return 0
+    if final == you:
+        return score + 100
+    elif final != 'DRAW' and final != None:
+        return score - 100
+    else:
+        return score
 
     listValidSpot=[]
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
@@ -101,7 +101,7 @@ def minimax(victory_cell, cur_state, you, depth,isMax ):
     return best
 
 
-def prior_spot(x, y, victory_cell):
+def prior_spot(x, y):
     score = 0
     spot = y+x
     list_12=['a1', 'h1', 'a8', 'h8']
@@ -113,21 +113,21 @@ def prior_spot(x, y, victory_cell):
     list_minus2 = ['b1', 'g1', 'b8', 'g8', 'a2', 'h8', 'a7', 'h7']
     list_minus4 = ['b2', 'g2', 'b7', 'g7']
     if spot in list_12:
-        score += 12
+        score += 120
     elif spot in list_2:
-        score += 2
+        score += 20
     elif spot in list_1_5:
-        score += 1.5
+        score += 15
     elif spot in list_minus2:
-        score += -2
+        score += -20
     elif spot in list_minus4:
-        score += -4
+        score += -40
     elif spot in list_0_5:
-        score += 0.5
+        score += 5
     elif spot in list_minus0_5:
-        score += -0.5
+        score += -5
     else:
-        score += 0.3
+        score += 3
     return score
 
 
@@ -145,7 +145,7 @@ def BestMove(victory_cell, cur_state, you, depth):
             new_game.update(cur_state)
             new_game.place(y + x, color)
             new_state = new_game.getCellLineLst()
-            moveVal = minimax(victory_cell, new_state, you, depth, True) + prior_spot(x, y, victory_cell)
+            moveVal = minimax(victory_cell, new_state, you, depth, True) + prior_spot(x, y)/2
             if moveVal > bestVal:
                 px = x
                 py = y
@@ -157,7 +157,7 @@ def callBot(game_info):
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (px, py) = BestMove(victory_cell, lines, you, 1)
+    (px, py) = BestMove(victory_cell, lines, you, 5)
     if px == None or py == None:
         return "NULL"
     return py + px
