@@ -76,7 +76,7 @@ def minimax(victory_cell, cur_state, you, depth, isMax):
         return score + 100
     elif final != 'DRAW' and final != None:
         return score - 100
-    else:
+    elif final == 'DRAW':
         return score
 
     listValidSpot=[]
@@ -90,7 +90,7 @@ def minimax(victory_cell, cur_state, you, depth, isMax):
         new_game.place(i, color)
         new_state = new_game.getCellLineLst()
 
-        if (isMax):
+        if isMax:
             best = -9999
             best = max(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
             return best
