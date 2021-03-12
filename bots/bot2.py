@@ -3,34 +3,16 @@ import numpy as np
 
 from init import Board,Game
 
-coef = (1,3,0,0.00005)
+coef = (0.5,3,3,3)
 
-cells_score = np.array([
-        [
-            10000,	-3000,	1000,	800,	800,	1000,	-3000,	10000
-        ],
-        [
-            -3000,	-5000,	-450,	-500,	-500,	-450,	-5000,	-3000
-        ],
-        [
-            1000,	-450,	30,	10,	10,	30,	-450,	1000
-        ],
-        [
-            8000,	-500,	10,	50,	50,	10,	-500,	800
-        ],
-        [
-            8000,	-500,	10,	50,	50,	10,	-500,	800
-        ],
-        [
-            1000,	-450,	30,	10,	10,	30,	-450,	1000
-        ],
-        [
-            -3000,	-5000,	-450,	-500,	-500,	-450,	-5000,	-3000
-        ],
-        [
-            10000,	-3000,	1000,	800,	800,	1000,	-3000,	10000
-        ]
-    ])
+cells_score = np.array([[800, -26, 24, -1, -5, 28, -18, 76],
+              [-23, -39, -18, -9, -6, -8, -39, -1],
+              [46, -16, 4, 1, -3, 6, -20, 52],
+              [-13, -5, 2, -1, 4, 3, -12, -2],
+              [-5, -6, 1, -2, -3, 0, -9, -5],
+              [48, -13, 12, 5, 0, 5, -24, 41],
+              [-27, -53, -11, -1, -11, -16, -58, -15],
+              [870, -25, 27, -1, 5, 36, -3, 100]])
 d  =3
 def botMax(cell_lines,you,alpha = None ,beta = None,depth = 8):
     board = Board()
@@ -104,7 +86,7 @@ def callBot(game_info, cell_score = None):
 
     you = lines[12]
     you = 'O' if you == 'WHITE' else '@'
-    move,point = botMax(cell.getCellLineLst(), you,depth = 3)
+    move,point = botMax(cell.getCellLineLst(), you,depth = 5)
     if move is None:
         return "NULL"
     return move
@@ -143,7 +125,7 @@ def heuristic_othello_board(board: Board, victory_cell, you):
 
     #self_ocurred_victory_cell
     return \
-        100*(len(self_valid_move)-coef[1]*len(opponent_valid_move))/\
-        (len(self_valid_move)+coef[1]*len(opponent_valid_move))+\
+        coef[0]*len(self_valid_move)-\
+        coef[1]*len(self_valid_move)+\
         coef[2]*self_cells_score/10000-\
         coef[3]*opponent_cells_score/10000
