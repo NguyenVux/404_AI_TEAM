@@ -6,8 +6,8 @@ import numpy as np
 class Board:
     def __init__(self):
         self.data = np.array([['-'] * 8] * 8)
-        self.data[3, 3] = self.data[4, 4] = 'W'
-        self.data[3, 4] = self.data[4, 3] = 'B'
+        self.data[3, 3] = self.data[4, 4] = 'O'
+        self.data[3, 4] = self.data[4, 3] = '@'
 
     # numeric_character: "12345678"
     # return: index of row
@@ -43,7 +43,7 @@ class Board:
 
     # position: "^\w\d$"
     # direction: (int, int) ~ (r, c)
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: {True, False}
     def isDirectionPlaceable(self, position, direction, color):
         if self.getValue(position) != '-':
@@ -66,7 +66,7 @@ class Board:
                     return True
 
     # position: "^\w\d$"
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: {True, False}
     def isPlaceable(self, position, color):
         return self.isDirectionPlaceable(position, (1, 0), color) or \
@@ -78,7 +78,7 @@ class Board:
                self.isDirectionPlaceable(position, (0, -1), color) or \
                self.isDirectionPlaceable(position, (1, -1), color)
 
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: {True, False}
     def isPlayable(self, color):
         for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
@@ -90,13 +90,13 @@ class Board:
     def getResult(self):
         b, w = 0, 0
         for (r, c) in itertools.product(range(8), range(8)):
-            b += 1 if self.data[r, c] == 'B' else 0
-            w += 1 if self.data[r, c] == 'W' else 0
+            b += 1 if self.data[r, c] == '@' else 0
+            w += 1 if self.data[r, c] == 'O' else 0
         return b, w
 
     # position: "^\w\d$"
     # direction: (int, int) ~ (r, c)
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: list of cells which will change color
     def getDirectionFlips(self, position, direction, color):
         if self.getValue(position) != '-':
@@ -118,7 +118,7 @@ class Board:
             ret.append((r, c))
 
     # position: "^\w\d$"
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: list of cells which will change color
     def getFlips(self, position, color):
         return self.getDirectionFlips(position, (1, 0), color) + \
@@ -131,7 +131,7 @@ class Board:
                self.getDirectionFlips(position, (1, -1), color)
 
     # Assume that the 'color' player can place a piece at the 'position' cell of the board
-    # color: {'B', 'W'}
+    # color: {'@', 'O'}
     # return: list of cells which will change color
     def place(self, position, color):
         alphabet_character, numeric_character = tuple(position)
@@ -184,8 +184,8 @@ class Game:
 
         v_b, v_w = 0, 0
         for cell in self.victory_cells:
-            v_b += 1 if self.board.getValue(cell) == 'B' else 0
-            v_w += 1 if self.board.getValue(cell) == 'W' else 0
+            v_b += 1 if self.board.getValue(cell) == '@' else 0
+            v_w += 1 if self.board.getValue(cell) == 'O' else 0
         if v_b == 5:
             self.winner = "BLACK"
             return True
@@ -193,7 +193,7 @@ class Game:
             self.winner = "WHITE"
             return True
 
-        color = 'B' if self.getNextTurn() == "BLACK" else 'W'
+        color = '@' if self.getNextTurn() == "BLACK" else 'O'
         if not self.board.isPlayable(color):
             b, w = self.board.getResult()
             self.winner = "BLACK" if b > w else self.winner
@@ -214,7 +214,7 @@ class Game:
             self.winner = "WHITE" if self.getNextTurn() == "BLACK" else 'BLACK'
             return True
 
-        color = 'B' if self.getNextTurn() == "BLACK" else 'W'
+        color = '@' if self.getNextTurn() == "BLACK" else 'O'
 
         if not self.board.isPlaceable(position, color):
             return False

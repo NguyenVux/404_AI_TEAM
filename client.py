@@ -4,13 +4,13 @@ import bot_scan
 #HOST, PORT = socket.gethostname(), 14003
 PORT =  14003
 HOST = input("enter host: ")
-
+match = int(input("enter match count: "))
 # Create a socket (SOCK_STREAM means a TCP socket)
 white_win = 0
 white_lose = 0
 black_win = 0
 black_lose = 0
-for i in range(5):
+for i in range(match):
     color = None
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # Connect to server and send data
@@ -27,7 +27,7 @@ for i in range(5):
                     if color == "BLACK":
                         black_lose += 1
                     else:
-                        white_win +=1
+                        white_lose +=1
                 sock.close()
                 break
             else:
