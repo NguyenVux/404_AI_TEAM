@@ -1,6 +1,13 @@
 import itertools
 from init import Board
 
+
+def isMovesLeft(cell, color):
+    for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
+            if cell.isPlaceable(c + r, color):
+                return True
+    return False
+
 def validSteps(cell, color):
     posible_positions = []
     for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
@@ -43,41 +50,43 @@ def heuristic(victory_cell, cell, color, max):
 
     result= evaluated(victory_cell, cell, color)
     opponent = '@' if color != "BLACK" else 'O'
-    AI = 'O' if opponent == "BLACK" else '@'
+    AI = 'O' if opponent == "@" else '@'
     if len(validSteps(cell, opponent)) == 0:
-       return 100 if max else -100
+       return 9999 if max else -9999
     if result != color and result != None:
-       return -100 if max else 100
+       return -9999 if max else 9999
 
     num_steps = len(validSteps(cell, AI))
     op_num_steps = len(validSteps(cell, opponent))
-    m = num_steps - op_num_steps
-    return m if max else -m
+    possibal_move = num_steps - op_num_steps
+    return possibal_move*10 if max else -possibal_move*10
 
 
-def minimax(victory_cell, cur_state, you, depth, isMax):
+def minimax(victory_cell, cur_state, you, depth, isMax, alpha, beta):
     game = Board()
     game.update(cur_state)
-    score = 0
     color = '@' if you == "BLACK" else 'O'
-    if depth == 0 or game.isPlayable(color):
-        if(isMax):
-            score += heuristic(victory_cell, game, you, True)
-        else:
-            score += heuristic(victory_cell, game, you, False)
     final = evaluated(victory_cell, game, color)
-    if final == you:
-        return score + 100
-    elif final != 'DRAW' and final != None:
-        return score - 100
-    elif final == 'DRAW':
-        return score
 
+    if final == you:
+        return 9999
+    elif final != 'DRAW' and final != None:
+        return -9999
+    elif final == 'DRAW':
+        return 0
+
+    if depth == 0 and game.isPlayable(color):
+        if isMax:
+            return heuristic(victory_cell, game, you, True)
+        else:
+            return heuristic(victory_cell, game, you, False)
+    if isMovesLeft(game,color) == False:
+        return 0
+    """
     listValidSpot=[]
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
         if game.isPlaceable(y + x, color):
             listValidSpot.append(y+x)
-    best = 0
     for i in listValidSpot:
         new_game = Board()
         new_game.update(cur_state)
@@ -87,21 +96,48 @@ def minimax(victory_cell, cur_state, you, depth, isMax):
         if isMax:
             best = -9999
             best = max(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
-            del new_game
+
             return best
         else:
             best = 9999
             best = min(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
-            del new_game
+
             return best
-    return best
+    """
 
+    if isMax:
+        best = -9999
+        for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
+            if game.isPlaceable(y + x, color):
+                new_game = Board()
+                new_game.update(cur_state)
+                new_game.place(y + x, color)
+                new_state = new_game.getCellLineLst()
 
-def prior_spot(x, y):
+                best = max(best, minimax(victory_cell, new_state, you, depth - 1, False, alpha, beta))
+                alpha = max(alpha, best)
+                if beta <= alpha:
+                    break
+        return best
+    else:
+        best = 9999
+        for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
+            if game.isPlaceable(y + x, color):
+                new_game = Board()
+                new_game.update(cur_state)
+                new_game.place(y + x, color)
+                new_state = new_game.getCellLineLst()
+
+                best = min(best, minimax(victory_cell, new_state, you, depth - 1, True, alpha, beta))
+                beta = min(beta, best)
+                if beta <= alpha:
+                    break
+        return best
+
+def prior_spot(spot):
     score = 0
-    spot = y+x
     list_12=['a1', 'h1', 'a8', 'h8']
-    list_2 =['c1', 'f1', 'c8', 'h8', 'a3', 'h3', 'a6', 'h6']
+    list_2 =['c1', 'f1', 'c8', 'f8', 'a3', 'h3', 'a6', 'h6']
     list_1_5=['c3', 'f3', 'c6', 'f6']
     list_0_5=['a4', 'h4', 'a5', 'h5', 'd1', 'e1', 'd8', 'e8']
     list_minus0_5 = ['c2', 'd2', 'e2', 'f2', 'b3', 'b4', 'b5', 'b6', 'g3'
@@ -134,14 +170,14 @@ def BestMove(victory_cell, cur_state, you, depth):
     color = '@' if you == "BLACK" else 'O'
     px = None
     py = None
-    bestVal = -1000
+    bestVal = -9999
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
         if game.isPlaceable(y + x, color):
             new_game = Board()
             new_game.update(cur_state)
             new_game.place(y + x, color)
             new_state = new_game.getCellLineLst()
-            moveVal = minimax(victory_cell, new_state, you, depth, True) + prior_spot(x, y)/2
+            moveVal = minimax(victory_cell, new_state, you, depth, True, -9999, 9999) + prior_spot(y+x)/2
             '''print("moveVal: ", moveVal)
             print("minimax: ", minimax(victory_cell, new_state, you, depth, True))
             print("prior_spot: ", prior_spot(x, y))
@@ -157,7 +193,7 @@ def callBot(game_info):
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (px, py) = BestMove(victory_cell, lines, you, 5)
+    (px, py) = BestMove(victory_cell, lines, you, 2)
     if px == None or py == None:
         return "NULL"
     return py + px
