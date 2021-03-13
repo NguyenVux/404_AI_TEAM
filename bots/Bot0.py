@@ -22,26 +22,26 @@ def getColumnId(alphabet_character):
 
 
 def getTakenVCell(victory_cell, cell):
-    count = 0
     v_b = v_w = 0
     for c in victory_cell:
         if cell.getValue(c) == '@':
-            count += 1
             v_b += 1
         if cell.getValue(c) == 'O':
-            count += 1
             v_w += 1
     return v_b, v_w
 
 
-def getWeight(valid_moves):
-    weight = 0
-    for i in valid_moves:
-        alphabet_character, numeric_character = tuple(i)
-        row = getRowId(numeric_character)
-        col = getColumnId(alphabet_character)
-        weight += h_weight[row][col]
-    return weight
+def getWeightSquares(cell, color):
+    cell_lines = cell.getCellLineLst()
+    total = 0
+    for i in range(8):
+        cell_lines[i]=cell_lines[i].replace(' ','')
+        for j in range(8):
+            if cell_lines[i][j] == color:
+                total += h_weight[i][j]
+            elif cell_lines[i][j]!='-':
+                total -= h_weight[i][j]
+    return total
 
 
 def is_end(victory_cells, cell, color):
@@ -59,10 +59,9 @@ def is_end(victory_cells, cell, color):
             return "WHITE"
         return "BLACK"
 
-    color_op = '@' if color == 'WHITE' else 'O'
     check_playable = cell.isPlayable(color)
     if not check_playable:
-        return "BLACK" if color == 'O' else '@'
+        return "BLACK" if color == 'O' else 'WHITE'
     return None
 
 
@@ -70,31 +69,32 @@ def Heuristic(victory_cell, cell, color, max=True):
     op_color = '@' if color != '@' else 'O'
     coinv, op_coinv = 0, 0
     cornerv, op_cornerv = 0, 0
-    weight, op_weight = 0, 0
     hstep = 0
     hcorner = 0
-    hweight = 0
+    hcoin = 0
+    hweight = getWeightSquares(cell, color)
 
     if color == '@':
         coinv, op_coinv = getTakenVCell(victory_cell, cell)
     else:
         op_coinv, coinv = getTakenVCell(victory_cell, cell)
-
+    if coinv + op_coinv != 0:
+        hcoin = 100 * (coinv - op_coinv) / (coinv + op_coinv)
+        if hcoin!=100:
+            hcoin=0
     stepv = validSteps(cell, color)
     op_stepv = validSteps(cell, op_color)
 
-    weight = getWeight(stepv)
-    op_weight = getWeight(op_stepv)
     cornerv = len(set(corner) & set(stepv))
     op_cornerv = len(set(corner) & set(op_stepv))
 
     if len(stepv) + len(op_stepv) != 0:
         hstep = 100 * (len(stepv) - len(op_stepv)) / (len(stepv) + len(op_stepv))
+        if hstep==100:
+            hstep*=4
     if cornerv + op_cornerv != 0:
         hcorner = 100 * (cornerv - op_cornerv) / (cornerv + op_cornerv)
-    if weight + op_weight != 0:
-        hweight = 100 * (weight - op_weight) / (weight + op_weight)
-    score = 700 * hstep + 750 * hweight + 900*hcorner
+    score = 4 * hstep + hweight + hcorner * 9 + 11 * hcoin
     score = -score if not max else score
     return score, None, None
 
@@ -105,10 +105,10 @@ def maxBot(victory_cell, cell_line, you, alpha, beta, depth):
 
     color = '@' if you == "BLACK" else 'O'
     result = is_end(victory_cell, cell, color)
-    if depth == 0:
+    if depth == 0 or result != None and result != you:
         return Heuristic(victory_cell, cell, color)
-    elif result != None and result != you:
-        return -999998, None, None
+    # elif result != None and result != you:
+    #     return -999998, None, None
     elif result == you:
         return 999998, None, None
 
@@ -116,6 +116,7 @@ def maxBot(victory_cell, cell_line, you, alpha, beta, depth):
 
     px = None
     py = None
+    cur_weight = getWeightSquares(cell, color)
 
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
         if cell.isPlaceable(y + x, color):
@@ -126,6 +127,7 @@ def maxBot(victory_cell, cell_line, you, alpha, beta, depth):
             new_state = new_cell.getCellLineLst()
             competitior = 'BLACK' if you != "BLACK" else 'WHITE'
             (m, min_x, min_y) = minBot(victory_cell, new_state, competitior, alpha, beta, depth - 1)
+            m += cur_weight
             if m > maxv:
                 maxv = m
                 px = x
@@ -144,10 +146,10 @@ def minBot(victory_cell, cell_line, you, alpha, beta, depth):
 
     color = '@' if you == "BLACK" else 'O'
     result = is_end(victory_cell, cell, color)
-    if depth == 0:
+    if depth == 0 or result != None and result != you:
         return Heuristic(victory_cell, cell, color, False)
-    elif result != None and result != you:
-        return 999998, None, None
+    # elif result != None and result != you:
+    #     return 999998, None, None
     elif result == you:
         return -999998, None, None
 
@@ -155,6 +157,7 @@ def minBot(victory_cell, cell_line, you, alpha, beta, depth):
 
     px = None
     py = None
+    cur_weight = getWeightSquares(cell, color)
 
     for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
         if cell.isPlaceable(y + x, color):
@@ -165,6 +168,7 @@ def minBot(victory_cell, cell_line, you, alpha, beta, depth):
             new_state = new_cell.getCellLineLst()
             competitior = 'BLACK' if you != "BLACK" else 'WHITE'
             (m, max_x, max_y) = maxBot(victory_cell, new_state, competitior, alpha, beta, depth - 1)
+            m -= cur_weight
             if m < minv:
                 minv = m
                 px = x
@@ -182,7 +186,7 @@ def callBot(game_info):
     victory_cell = lines[1].split(' ')
     you = lines[-2]
     lines = lines[3:11]
-    (m, px, py) = maxBot(victory_cell, lines, you, -999999, 999999, 3)
+    (m, px, py) = maxBot(victory_cell, lines, you, -999999, 999999, 2)
     if px == None or py == None:
         return "NULL"
     return py + px
