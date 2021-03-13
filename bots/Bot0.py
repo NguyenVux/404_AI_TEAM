@@ -3,21 +3,23 @@ import itertools, random
 from init import Board
 
 corner = ['a1', 'a8', 'h1', 'h8']
-h_weight = [[80, -26, 24, -1,-5, 28, -18, 76],
-              [-23, -39, -18, -9, -6, -8, -39, -1],
-              [46, -16, 4, 1, -3, 6, -20, 52],
-              [-13, -5, 2, -1, 4, 3, -12, -2],
-              [-5, -6, 1, -2, -3, 0, -9, -5],
-              [48, -13, 12, 5, 0, 5, -24, 41],
-              [-27, -53, -11, -1, -11, -16, -58, -15],
-              [87, -25, 27, -1, 5, 36, -3, 100]]
+h_weight = [[120, -20, 20, 5, 5, 20, -20, 120],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [20, -5, 15, 3, 3, 15, -5, 20],
+            [5, -5, 3, 3, 3, 3, -5, 5],
+            [5, -5, 3, 3, 3, 3, -5, 5],
+            [20, -5, 15, 3, 3, 15, -5, 20],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [120, -20, 20, 5, 5, 20, -20, 120]]
 
 
 def getRowId(numeric_character):
     return ord(numeric_character) - ord('1')
 
+
 def getColumnId(alphabet_character):
     return ord(alphabet_character) - ord('a')
+
 
 def getTakenVCell(victory_cell, cell):
     count = 0
@@ -31,14 +33,16 @@ def getTakenVCell(victory_cell, cell):
             v_w += 1
     return v_b, v_w
 
+
 def getWeight(valid_moves):
-    weight=0
+    weight = 0
     for i in valid_moves:
         alphabet_character, numeric_character = tuple(i)
-        row=getRowId(numeric_character)
-        col=getColumnId(alphabet_character)
-        weight+=h_weight[row][col]
+        row = getRowId(numeric_character)
+        col = getColumnId(alphabet_character)
+        weight += h_weight[row][col]
     return weight
+
 
 def is_end(victory_cells, cell, color):
     v_b = v_w = 0
@@ -65,12 +69,11 @@ def is_end(victory_cells, cell, color):
 def Heuristic(victory_cell, cell, color, max=True):
     op_color = '@' if color != '@' else 'O'
     coinv, op_coinv = 0, 0
-    cornerv, op_cornerv=0,0
-    weight, op_weight=0,0
-    hcoin = 0
+    cornerv, op_cornerv = 0, 0
+    weight, op_weight = 0, 0
     hstep = 0
     hcorner = 0
-    hweight=0
+    hweight = 0
 
     if color == '@':
         coinv, op_coinv = getTakenVCell(victory_cell, cell)
@@ -80,22 +83,21 @@ def Heuristic(victory_cell, cell, color, max=True):
     stepv = validSteps(cell, color)
     op_stepv = validSteps(cell, op_color)
 
-    weight=getWeight(stepv)
-    op_weight=getWeight(op_stepv)
+    weight = getWeight(stepv)
+    op_weight = getWeight(op_stepv)
     cornerv = len(set(corner) & set(stepv))
-    op_cornerv=len(set(corner) & set(op_stepv))
+    op_cornerv = len(set(corner) & set(op_stepv))
 
-    if coinv + op_coinv!=0:
-        hcoin = 100 * (coinv - op_coinv) / (coinv + op_coinv)
-    if len(stepv) + len(op_stepv)!=0:
-        hstep = 100 * (len(stepv)-len(op_stepv)) / (len(stepv) + len(op_stepv))
-    if cornerv+op_cornerv!=0:
-        hcorner=100*(cornerv-op_cornerv)/(cornerv+op_cornerv)
-    if weight+op_weight!=0:
-        hweight=100*(weight-op_weight)/(weight+op_weight)
-    score = 25.5*hstep+25*hcoin+10*hweight + 27*hcorner
-    score=-score if not max else score
+    if len(stepv) + len(op_stepv) != 0:
+        hstep = 100 * (len(stepv) - len(op_stepv)) / (len(stepv) + len(op_stepv))
+    if cornerv + op_cornerv != 0:
+        hcorner = 100 * (cornerv - op_cornerv) / (cornerv + op_cornerv)
+    if weight + op_weight != 0:
+        hweight = 100 * (weight - op_weight) / (weight + op_weight)
+    score = 700 * hstep + 750 * hweight + 900*hcorner
+    score = -score if not max else score
     return score, None, None
+
 
 def maxBot(victory_cell, cell_line, you, alpha, beta, depth):
     cell = Board()
@@ -107,8 +109,8 @@ def maxBot(victory_cell, cell_line, you, alpha, beta, depth):
         return Heuristic(victory_cell, cell, color)
     elif result != None and result != you:
         return -999998, None, None
-    elif result==you:
-        return 999999, None, None
+    elif result == you:
+        return 999998, None, None
 
     maxv = -999999
 
@@ -146,8 +148,8 @@ def minBot(victory_cell, cell_line, you, alpha, beta, depth):
         return Heuristic(victory_cell, cell, color, False)
     elif result != None and result != you:
         return 999998, None, None
-    elif result==you:
-        return -999999, None, None
+    elif result == you:
+        return -999998, None, None
 
     minv = 999999
 
