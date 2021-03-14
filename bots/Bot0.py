@@ -195,7 +195,7 @@ def Heuristic(victory_cell, cell, color, max=True):
     if my_stb+op_stb!=0:
         hstb=100*(my_stb-op_stb)/(my_stb+op_stb)
 
-    score = 4 * hstep + hweight + hcorner * 10 + 8*hstb + 4*hcoin
+    score = 4 * hstep + hweight + hcorner * 10 + 8*hstb + 5*hcoin
     score = -score if not max else score
     return score, None, None
 
