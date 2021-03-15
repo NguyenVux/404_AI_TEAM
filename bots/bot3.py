@@ -1,6 +1,207 @@
 import itertools
 from init import Board
+UNStable_lst = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8',
+                       'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8',
+                       'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8',
+                       'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8',
+                       'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8',
+                       'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8',
+                       'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8',
+                       'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8']
+stable_lst = [[0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0]]
 
+corner = ['a1', 'a8', 'h1', 'h8']
+
+h_weight = [[120, -20, 20, 5, 5, 20, -20, 120],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [20, -5, 15, 3, 3, 15, -5, 20],
+            [5, -5, 3, 3, 3, 3, -5, 5],
+            [5, -5, 3, 3, 3, 3, -5, 5],
+            [20, -5, 15, 3, 3, 15, -5, 20],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [120, -20, 20, 5, 5, 20, -20, 120]]
+
+
+def getRowId(numeric_character):
+    return ord(numeric_character) - ord('1')
+
+
+def getColumnId(alphabet_character):
+    return ord(alphabet_character) - ord('a')
+
+
+def getTakenVCell(victory_cell, cell):
+    v_b = v_w = 0
+    for c in victory_cell:
+        if cell.getValue(c) == '@':
+            v_b += 1
+        if cell.getValue(c) == 'O':
+            v_w += 1
+    return v_b, v_w
+
+
+def getWeightSquares(cell, color):
+    cell_lines = cell.getCellLineLst()
+    total = 0
+    for i in range(8):
+        cell_lines[i] = cell_lines[i].replace(' ', '')
+        for j in range(8):
+            if cell_lines[i][j] == color:
+                total += h_weight[i][j]
+            elif cell_lines[i][j] != '-':
+                total -= h_weight[i][j]
+    return total
+
+
+def stableCount(cell, color):
+    count=0
+    unstable_list_fake=UNStable_lst.copy()
+    stable_lst_fake=stable_lst.copy()
+    for i in range(len(unstable_list_fake)):
+        stable = False
+        if cell.getValue(unstable_list_fake[i]) == color:
+            stable = isStableVertical(unstable_list_fake[i],stable_lst_fake) and \
+                     isStableHorizontal( unstable_list_fake[i],stable_lst_fake) and \
+                     isStableLeftDiagonal(unstable_list_fake[i],stable_lst_fake) and \
+                     isStableRightDiagonal(unstable_list_fake[i],stable_lst_fake)
+            if stable:
+                alphabet_character, numeric_character = tuple(unstable_list_fake[i])
+                stable_lst_fake[getRowId(numeric_character)][getColumnId(alphabet_character)] = 1
+                count+=1
+    return count
+
+def isStableLeftDiagonal(position, stable_lst_fake):
+    alphabet_character, numeric_character = tuple(position)
+    rowUP = getRowId(numeric_character) + 1
+    rowDown = getRowId(numeric_character) - 1
+    colUp = getColumnId(alphabet_character) + 1
+    colDown = getColumnId(alphabet_character) - 1
+
+    if (rowDown < 0 or colDown < 0):
+        return True
+    if (rowUP > 7 or colUp > 7):
+        return True
+    if (stable_lst_fake[rowDown][colDown] == 1) or (stable_lst_fake[rowUP][colUp] == 1):
+        return True
+    return False
+
+
+def isStableRightDiagonal(position, stable_lst_fake):
+    alphabet_character, numeric_character = tuple(position)
+    rowUP = getRowId(numeric_character) + 1
+    rowDown = getRowId(numeric_character) - 1
+    colUp = getColumnId(alphabet_character) + 1
+    colDown = getColumnId(alphabet_character) - 1
+
+    if (rowDown < 0 or colUp > 7):
+        return True
+    if (rowUP > 7 or colDown < 0):
+        return True
+    if (stable_lst_fake[rowDown][colUp] == 1) or (stable_lst_fake[rowUP][colDown] == 1):
+        return True
+    return False
+
+
+def isStableVertical(position, stable_lst_fake):
+    alphabet_character, numeric_character = tuple(position)
+    rowUP = getRowId(numeric_character) + 1
+    rowDown = getRowId(numeric_character) -1
+    col = getColumnId(alphabet_character)
+
+    if (rowDown < 0):
+        return True
+    if (rowUP > 7):
+        return True
+    if (stable_lst_fake[rowDown][col] == 1) or (stable_lst_fake[rowUP][col] == 1):
+        return True
+    return False
+
+
+def isStableHorizontal(position, stable_lst_fake):
+    alphabet_character, numeric_character = tuple(position)
+    row = getRowId(numeric_character)
+    colUp = getColumnId(alphabet_character) + 1
+    colDown = getColumnId(alphabet_character) - 1
+
+    if (colUp > 7):
+        return True
+    if (colDown < 0):
+        return True
+    if (stable_lst_fake[row][colUp] == 1) or (stable_lst_fake[row][colDown] == 1):
+        return True
+    return False
+
+
+def is_end(victory_cells, cell, color):
+    v_b = v_w = 0
+    count = 0
+
+    v_b, v_w = getTakenVCell(victory_cells, cell)
+    if v_b == 5:
+        return "BLACK"
+    if v_w == 5:
+        return "WHITE"
+
+    if count == 5:
+        if v_w > v_b:
+            return "WHITE"
+        return "BLACK"
+
+    check_playable = cell.isPlayable(color)
+    if not check_playable:
+        return "BLACK" if color == 'O' else 'WHITE'
+    return None
+
+
+def Heuristic(victory_cell, cell, color, max=True):
+    op_color = '@' if color != '@' else 'O'
+    cornerv, op_cornerv = 0, 0
+    stepv = validSteps(cell, color)
+    op_stepv = validSteps(cell, op_color)
+    if stepv == 0:
+        return -9999 if max else 9999
+    if op_stepv == 0:
+        return 9999 if max else -9999
+
+    my_stb=stableCount(cell,color)
+    op_stb=stableCount(cell,op_color)
+    hstep = 0
+    hcorner = 0
+    hcoin = 0
+    hstb=0
+    hweight = getWeightSquares(cell, color)
+
+    if color == '@':
+        coinv, op_coinv = getTakenVCell(victory_cell, cell)
+    else:
+        op_coinv, coinv = getTakenVCell(victory_cell, cell)
+    if coinv + op_coinv != 0:
+        hcoin = 100 * (coinv - op_coinv) / (coinv + op_coinv)
+        if hcoin != 100 and hcoin!=-100:
+            hcoin = 0
+
+    cornerv = len(set(corner) & set(stepv))
+    op_cornerv = len(set(corner) & set(op_stepv))
+
+    if len(stepv) + len(op_stepv) != 0:
+        hstep = 100 * (len(stepv) - len(op_stepv)) / (len(stepv) + len(op_stepv))
+        if hstep == 100 or hstep==-100:
+            hstep *= 11 / 4
+    if cornerv + op_cornerv != 0:
+        hcorner = 100 * (cornerv - op_cornerv) / (cornerv + op_cornerv)
+    if my_stb+op_stb!=0:
+        hstb=100*(my_stb-op_stb)/(my_stb+op_stb)
+
+    score = 4 * hstep + hweight + hcorner * 10 + 8*hstb + 5*hcoin
+    score = -score if not max else score
+    return score
 
 def isMovesLeft(cell, color):
     for (r, c) in itertools.product(list('12345678'), list('abcdefgh')):
@@ -46,64 +247,34 @@ def evaluated(victory_cells, cell, color, force=False):
     return None
 
 
-def heuristic(victory_cell, cell, color, max):
-
-    result= evaluated(victory_cell, cell, color)
-    opponent = '@' if color != "BLACK" else 'O'
-    AI = 'O' if opponent == "@" else '@'
-    if len(validSteps(cell, opponent)) == 0:
-       return 9999 if max else -9999
-    if result != color and result != None:
-       return -9999 if max else 9999
-
-    num_steps = len(validSteps(cell, AI))
-    op_num_steps = len(validSteps(cell, opponent))
-    possibal_move = num_steps - op_num_steps
-    return possibal_move*10 if max else -possibal_move*10
-
 
 def minimax(victory_cell, cur_state, you, depth, isMax, alpha, beta):
     game = Board()
     game.update(cur_state)
     color = '@' if you == "BLACK" else 'O'
-    final = evaluated(victory_cell, game, color)
+    opponent = "WHITE" if you == "BLACK" else 'BLACK'
+    final = evaluated(victory_cell, game, you)
 
     if final == you:
-        return 9999
+        if isMax:
+            return 9999
+        else:
+            return -9999
     elif final != 'DRAW' and final != None:
-        return -9999
+        if isMax:
+            return -9999
+        else:
+            return 9999
     elif final == 'DRAW':
         return 0
 
     if depth == 0 and game.isPlayable(color):
         if isMax:
-            return heuristic(victory_cell, game, you, True)
+            return Heuristic(victory_cell, game, color, True)
         else:
-            return heuristic(victory_cell, game, you, False)
+            return Heuristic(victory_cell, game, color, False)
     if isMovesLeft(game,color) == False:
         return 0
-    """
-    listValidSpot=[]
-    for (x, y) in itertools.product(list('12345678'), list('abcdefgh')):
-        if game.isPlaceable(y + x, color):
-            listValidSpot.append(y+x)
-    for i in listValidSpot:
-        new_game = Board()
-        new_game.update(cur_state)
-        new_game.place(i, color)
-        new_state = new_game.getCellLineLst()
-
-        if isMax:
-            best = -9999
-            best = max(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
-
-            return best
-        else:
-            best = 9999
-            best = min(best, minimax(victory_cell, new_state, you, depth - 1, not isMax))
-
-            return best
-    """
 
     if isMax:
         best = -9999
@@ -114,7 +285,7 @@ def minimax(victory_cell, cur_state, you, depth, isMax, alpha, beta):
                 new_game.place(y + x, color)
                 new_state = new_game.getCellLineLst()
 
-                best = max(best, minimax(victory_cell, new_state, you, depth - 1, False, alpha, beta))
+                best = max(best, minimax(victory_cell, new_state, opponent, depth - 1, False, alpha, beta))
                 alpha = max(alpha, best)
                 if beta <= alpha:
                     break
@@ -128,7 +299,7 @@ def minimax(victory_cell, cur_state, you, depth, isMax, alpha, beta):
                 new_game.place(y + x, color)
                 new_state = new_game.getCellLineLst()
 
-                best = min(best, minimax(victory_cell, new_state, you, depth - 1, True, alpha, beta))
+                best = min(best, minimax(victory_cell, new_state, opponent, depth - 1, True, alpha, beta))
                 beta = min(beta, best)
                 if beta <= alpha:
                     break
@@ -177,7 +348,7 @@ def BestMove(victory_cell, cur_state, you, depth):
             new_game.update(cur_state)
             new_game.place(y + x, color)
             new_state = new_game.getCellLineLst()
-            moveVal = minimax(victory_cell, new_state, you, depth, True, -9999, 9999) + prior_spot(y+x)/2
+            moveVal = minimax(victory_cell, new_state, you, depth, True, -9999, 9999)
             '''print("moveVal: ", moveVal)
             print("minimax: ", minimax(victory_cell, new_state, you, depth, True))
             print("prior_spot: ", prior_spot(x, y))
