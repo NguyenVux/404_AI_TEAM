@@ -1,11 +1,12 @@
 import socket, re
 from os import system
-import bot_scan
+from Bot0 import callBot
+
 #HOST, PORT = socket.gethostname(), 14003
-PORT =  14003
+PORT = 14003
 HOST = input("enter host: ")
 match = int(input("enter match count: "))
-# Create a socket (SOCK_STREAM means a TCP socket)
+
 white_win = 0
 white_lose = 0
 black_win = 0
@@ -34,9 +35,9 @@ for i in range(match):
                 if color is None:
                     color = ret.split('\n')[-2]
                 system("cls")
-                print("Match Number: "+ str(i))
+                print("Match Number: " + str(i))
                 print(ret)
-                sock.sendall(bytes(bot_scan.callBot(ret), "ASCII"))
+                sock.sendall(bytes(callBot(ret), "ASCII"))
 
 total = white_win+white_lose+black_lose+black_win
 print("Total matches: " + str(total))        
